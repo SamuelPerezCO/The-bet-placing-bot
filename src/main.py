@@ -1,6 +1,6 @@
 from telethon import TelegramClient, events
-from openai import OpenAI
 from dotenv import load_dotenv
+from openai import OpenAI
 import asyncio
 import os
 
@@ -17,7 +17,24 @@ deepseek = OpenAI(
     base_url="https://api.deepseek.com"
 )
 
+async def place_bet(bet_details):
+    pass
+
+async def extract_text(message):
+    """extract the text from the image and send it to deepseek to get the answer and then place the bet"""
+    pass
+
+async def download_image(event):
+    message = event.message
+    if message.photo or (message.document and message.document.mime_type.startswith("image/")):
+        path = await event.download_media(file="downloads/")
+        print("Image downloaded to:", path)
+        return path
+    return None
+
 async def ask_deepseek(question):
+    """Falta agregarle el contexto de que va a hacer y como debe de responder para que la funcion que 
+    hace la apuesta sea mas facil de implementar"""
     response = deepseek.chat.completions.create(
         model="deepseek-chat",
         messages=[
@@ -28,13 +45,19 @@ async def ask_deepseek(question):
 
 async def main():
     async with client:
-        @client.on(events.NewMessage(chats=GROUP_ID))
+        # @client.on(events.NewMessage(chats=GROUP_ID))
+        @client.on(events.NewMessage(chats=-5271750467))
         async def handler(event):
-            message = event.message.text
-            print(f"New message: {message}")
+            message = event.message
 
-            answer = await ask_deepseek(message)
-            print(f"DeepSeek answer: {answer}")
+            downloaded = await download_image(event)
+            if downloaded:
+                return
+
+            if message.text:
+                print(f"New message: {message.text}")
+                answer = await ask_deepseek(message.text)
+                print(f"DeepSeek answer: {answer}")
 
         await client.run_until_disconnected()
 
