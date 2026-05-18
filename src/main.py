@@ -2,7 +2,11 @@ from telethon import TelegramClient, events
 from dotenv import load_dotenv
 from openai import OpenAI
 import asyncio
+import easyocr
+import ssl
 import os
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 load_dotenv()
 
@@ -21,8 +25,14 @@ async def place_bet(bet_details):
     pass
 
 async def extract_text(message):
-    """extract the text from the image and send it to deepseek to get the answer and then place the bet"""
-    pass
+    """extract the text from the image and send it to deepseek to get 
+        the answer and then place the bet"""
+    reader = easyocr.Reader(['en' , 'es'])
+
+    result = reader.readtext(message)
+
+    for detection in result:
+        print(detection[1])  # This will print the detected text
 
 async def download_image(event):
     message = event.message
